@@ -280,7 +280,7 @@ wwLib.wwPopups.addStory('WW_FORM_CONFIG_POPUP', {
                 en: 'Next',
                 fr: 'Suivant'
             },
-            next: 'WWBUTTON_LINKS'
+            next: 'LINK_INTERNAL'
         }
     }
 })

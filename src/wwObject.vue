@@ -4,10 +4,29 @@
         <wwOrangeButton class="ww-orange-button" v-if="wwObjectCtrl.getSectionCtrl().getEditMode() == 'CONTENT'"></wwOrangeButton>
         <!-- wwManager:end -->
         
-        <form @submit="submit" :method="method" :action="action">
+        <form :id="wwObject.content.data.config.name" 
+            :autocomplete="wwObject.content.data.config.autocomplete" 
+            :method="methodForm"
+            :action="wwObject.content.data.config.action" 
+            :enctype="wwObject.content.data.config.encType"
+            :acceptCharset="wwObject.content.data.config.acceptCharset"
+            :target="wwObject.content.data.config.target"
+            @submit="redirect">
+            
+            <!-- SPECIFIC METHOD (PUT, PATCH, DELETE, etc...) -->
+            <input v-if="wwObject.content.data.config.method !== 'POST'" type="hidden" name="_method" :value="wwObject.content.data.config.method"/>
+            
+            <!-- WEWEB-EMAIL CONFIGURATION -->
+            <span v-if="wwObject.content.data.config.type === 'weweb-email'">
+                <input type="hidden" name="ww-type" value="form">
+                <input type="hidden" name="ww-from" :value="wwObject.content.data.config.from">
+                <input type="hidden" name="ww-recipients" :value="JSON.stringify(wwObject.content.data.config.recipients)">
+            </span>
+
+            <!-- FORM CONTENT -->
             <wwLayoutColumn
                 tag="div"
-                class="top-ww-obj"
+                class="ww-obj"
                 ww-default="ww-image"
                 :ww-list="wwObject.content.data.content"
                 @ww-add="add(wwObject.content.data.content, $event)"
@@ -15,168 +34,17 @@
             >
                 <wwObject v-for="wwObj in wwObject.content.data.content" :key="wwObj.uniqueId" :ww-object="wwObj"></wwObject>
             </wwLayoutColumn>
+
+            <wwObject :ww-object="wwObject.content.data.input"></wwObject>
+            <wwObject :ww-object="wwObject.content.data.textarea"></wwObject>
+            <wwObject :ww-object="wwObject.content.data.submit"></wwObject>
         </form>
     </div>
 </template>
 
 <script>
 /* wwManager:start */
-import wwWeWebServicePopup from './popup/wwWeWebServicePopup.vue'
-wwLib.wwPopups.addPopup('wwWeWebServicePopup', wwWeWebServicePopup)
-
-wwLib.wwPopups.addStory('WWSERVICE_ACTION', {
-    title: {
-        en: 'WeWeb Email Service',
-        fr: `Configuration du service d'email de weweb`
-    },
-    type: 'wwWeWebServicePopup',
-    buttons: {
-        OK: {
-            text: {
-                en: 'Next',
-                fr: 'Suivant'
-            },
-            next: 'LINK_INTERNAL'
-        }
-    }
-})
-
-wwLib.wwPopups.addStory('WW_SERVICE_ACTION_API', {
-    title: {
-        en: 'Edit API info',
-        fr: `Editer les infos de l'API`
-    },
-    type: 'wwPopupForm',
-    storyData: {
-        fields: [
-            {
-                label: {
-                    en: 'API URL :',
-                    fr: `URL de l'API :`
-                },
-                desc: {
-                    en: 'Form data will be sent to this URL.',
-                    fr: 'Les données du formulaire seront envoyées à cette URL.'
-                },
-                type: 'text',
-                key: 'apiUrl',
-                valueData: 'wwObject.content.data.button.config.api.url',
-                validation: {
-                    regex: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}(\.[a-z]{2,6})?\b([-a-zA-Z0-9@:%_\+.~#?&//=\,]*)$/gi,
-                    message: {
-                        en: 'URL is in incorrect format.',
-                        fr: 'l\'url est dans un format incorrect.',
-                    }
-                }
-            },
-            {
-                label: {
-                    en: 'Method :',
-                    fr: 'Méthode :'
-                },
-                desc: {
-                    en: 'Method that will be used to call the API URL',
-                    fr: 'Méthode utilisée pour appeler l\'API'
-                },
-                type: 'select',
-                key: 'apiMethod',
-                valueData: 'wwObject.content.data.button.config.api.method',
-                options: {
-                    wwObject: {},
-                    values: [
-                        {
-                            value: 'GET',
-                            text: {
-                                en: 'GET',
-                                fr: 'GET'
-                            }
-                        },
-                        {
-                            value: 'POST',
-                            default: true,
-                            text: {
-                                en: 'POST',
-                                fr: 'POST'
-                            }
-                        },
-                        {
-                            value: 'PUT',
-                            text: {
-                                en: 'PUT',
-                                fr: 'PUT'
-                            }
-                        },
-                        {
-                            value: 'PATCH',
-                            text: {
-                                en: 'PATCH',
-                                fr: 'PATCH'
-                            }
-                        },
-                        {
-                            value: 'DELETE',
-                            text: {
-                                en: 'DELETE',
-                                fr: 'DELETE'
-                            }
-                        }
-                    ]
-                }
-            }
-        ]
-    },
-    buttons: {
-        OK: {
-            text: {
-                en: 'Ok',
-                fr: 'Valider'
-            },
-            next: false
-        }
-    }
-})
-
-wwLib.wwPopups.addStory('WWFORM_OPTIONS', {
-    title: {
-        en: 'Edit Form',
-        fr: 'Editer le formulaire'
-    },
-    type: 'wwPopupEditWwObject',
-    buttons: null,
-    storyData: {
-        list: {
-             ACTION_API: {
-                separator: {
-                    en: 'Actions',
-                    fr: 'Actions'
-                },
-                title: {
-                    en: 'Custom API',
-                    fr: 'Api personnalisé'
-                },
-                desc: {
-                    en: '',
-                    fr: ''
-                },
-                icon: 'wwi wwi-lang',
-                next: 'WW_SERVICE_ACTION_API'
-            },
-            ACTION_WEWEB: {
-                title: {
-                    en: 'WeWeb email service',
-                    fr: `Service d'email WeWeb`
-                },
-                desc: {
-                    en: '',
-                    fr: ''
-                },
-                icon: 'wwi wwi-newsletter',
-                next: 'WWSERVICE_ACTION'
-            }
-        }
-    }
-})
-
+// FORM ELELEMTS
 wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
     title: {
         en: 'Select Form element',
@@ -396,6 +264,55 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
         }
     }
 })
+
+import wwFormConfigPopup from './popup/wwFormConfigPopup.vue'
+wwLib.wwPopups.addPopup('wwFormConfigPopup', wwFormConfigPopup)
+
+wwLib.wwPopups.addStory('WW_FORM_CONFIG_POPUP', {
+    title: {
+        en: 'Form Configuration',
+        fr: `Configuration du formulaire`
+    },
+    type: 'wwFormConfigPopup',
+    buttons: {
+        OK: {
+            text: {
+                en: 'Next',
+                fr: 'Suivant'
+            },
+            next: 'WWBUTTON_LINKS'
+        }
+    }
+})
+
+wwLib.wwPopups.addStory('WW_FORM_OPTIONS', {
+    title: {
+        en: 'Edit Form',
+        fr: 'Editer le formulaire'
+    },
+    type: 'wwPopupEditWwObject',
+    buttons: null,
+    storyData: {
+        list: {
+             ACTION_API: {
+                separator: {
+                    en: 'CONFIGURATION',
+                    fr: 'CONFIGURATION'
+                },
+                title: {
+                    en: 'Form Configuration',
+                    fr: 'Configuration du formulaire'
+                },
+                desc: {
+                    en: '',
+                    fr: ''
+                },
+                icon: 'wwi wwi-config',
+                next: 'WW_FORM_CONFIG_POPUP'
+            }
+        }
+    }
+})
 /* wwManager:end */
 
 export default {
@@ -404,30 +321,19 @@ export default {
         wwObjectCtrl: Object,
     },
     data() {
-        return {
-            designName: wwLib.wwWebsiteData.getWebsiteNameFromRoute(),
-            designId: wwLib.wwWebsiteData.getInfo().id,
-            apiUrl: wwLib.wwApiRequests._getApiUrl()
-        };
+        return {}
     },
     computed: {
         wwObject() {
             return this.wwObjectCtrl.get();
         },
-        action() {
-            if (this.wwObject.content.data.config &&
-                this.wwObject.content.data.config.api &&
-                this.wwObject.content.data.config.api.enabled)
-                return this.wwObject.content.data.config.api.url
-            return 'javascript:void(0);'
+        target() {
+            return '/'+wwLib.wwWebsiteData.getPageRoute(this.wwObject.content.data.config.linkPage)
         },
-        method() {
-            if (this.wwObject.content.data.config &&
-                this.wwObject.content.data.config.api &&
-                this.wwObject.content.data.config.api.enabled)
-                return this.wwObject.content.data.config.api.method
-            return ''
-        }
+        methodForm() {
+            // Only accept POST and GET
+            return this.method === 'POST' || this.method === 'GET' ? this.method : 'POST'
+        },
     },
     methods: {
         /* wwManager:start */
@@ -453,35 +359,9 @@ export default {
             wwLib.$router.push(path);
             this.$emit('next', null);
         },
-        async wewebSubmit(formInputs) {
+        async redirect(data) {
             try {
-                const formData = new FormData();
-                formData.append('ww-type', 'form');
-                formData.append('ww-from', this.designName);
-                formData.append('ww-recipients', JSON.stringify(this.wwObject.content.data.config.weweb.recipients));
-                let currentSize = 0;
-                for (const input of formInputs) {
-                    let isError = false
-                    if (input.name) {
-
-                        const formElem = {
-                            displayName: `${input.name}`,
-                            value: input.value
-                        }
-                        formData.append(formElem.displayName, input.value);
-                    }
-                }
-                await axios.post(`${this.apiUrl}/design/${this.designId}/send_form_info`, formData)
-                this.goToPage(this.wwObject.content.data.config.weweb.linkPage);
-            } catch (err) {
-                wwLib.wwLog.error('ERROR', err)
-            }
-        },
-        async submit(data) {
-            try {
-                if (this.wwObject.content.data.config.weweb.enabled) {
-                    await this.wewebSubmit(data.srcElement)
-                }
+                this.goToPage(this.wwObject.content.data.config.linkPage)
             } catch (err) {
                 wwLib.wwLog.error('ERROR:', err)
             }
@@ -491,40 +371,34 @@ export default {
             let copyObj = JSON.parse(JSON.stringify(this.wwObject)) // to clean
             copyObj.uniqueId += 1
             let options = {
-                firstPage: 'WWFORM_OPTIONS',
+                firstPage: 'WW_FORM_OPTIONS',
                 data: {
-                    wwObject: copyObj,
+                    wwObject: copyObj
                 }
             }
             try {
                 const result = await wwLib.wwPopups.open(options);
                 wwLib.wwObjectHover.setLock(this);
-                /*=============================================m_ÔÔ_m=============================================\
-                  WEWEB SERVICE
-                \================================================================================================*/
-                this.wwObject.content.data.config = this.wwObject.content.data.config || {};
-                this.wwObject.content.data.config.weweb = this.wwObject.content.data.config.weweb || {};
-                if (typeof (result.wewebService) != 'undefined') {
-                    this.wwObject.content.data.config.api = {};
-                    if (typeof (result.wewebService.enabled) != 'undefined') {
-                        this.wwObject.content.data.config.weweb.enabled = result.wewebService.enabled;
+
+                if (typeof (result.config) != 'undefined') {
+                    this.wwObject.content.data.config.type = result.config.type
+                    if (result.config.type === 'weweb-email') {
+                        this.wwObject.content.data.config.recipients = result.config.recipients
+                        this.wwObject.content.data.config.from = result.config.from
                     }
-                    if (typeof (result.wewebService.recipients) != 'undefined') {
-                        this.wwObject.content.data.config.weweb.recipients = result.wewebService.recipients;
-                    }
-                    if (typeof (result.linkPage) != 'undefined') {
-                        this.wwObject.content.data.config.weweb.linkPage = result.linkPage;
-                    }
+
+                    this.wwObject.content.data.config.name = result.config.name
+                    this.wwObject.content.data.config.autocomplete = result.config.autocomplete
+                    this.wwObject.content.data.config.action = result.config.action
+                    this.wwObject.content.data.config.method = result.config.method
+
+                    this.wwObject.content.data.config.target = result.config.target
+                    this.wwObject.content.data.config.encType = result.config.encType
+                    this.wwObject.content.data.config.acceptCharset = result.config.acceptCharset
                 }
-                /*=============================================m_ÔÔ_m=============================================\
-                  API SERVICE
-                \================================================================================================*/
-                this.wwObject.content.data.config.api = this.wwObject.content.data.config.api || {};
-                if (typeof (result.apiUrl) != 'undefined' && typeof (result.apiMethod) != 'undefined') {
-                    this.wwObject.content.data.config.weweb = {};
-                    this.wwObject.content.data.config.api.enabled = true;
-                    this.wwObject.content.data.config.api.url = result.apiUrl;
-                    this.wwObject.content.data.config.api.method = result.apiMethod;
+
+                if (typeof (result.linkPage) != 'undefined') {
+                    this.wwObject.content.data.config.linkPage = result.linkPage;
                 }
                 this.wwObjectCtrl.update(this.wwObject);
             } catch (err) {
@@ -534,10 +408,19 @@ export default {
         }
         /* wwManager:end */
     },
-    mounted: function () {
+    mounted() {
         this.wwObject.content.data.content =  this.wwObject.content.data.content || []
         this.wwObject.content.data.config = this.wwObject.content.data.config || {}
 
+        this.wwObject.content.data.input = wwLib.wwObject.getDefault({
+            type: 'ww-form-input'
+        })
+        this.wwObject.content.data.textarea = wwLib.wwObject.getDefault({
+            type: 'ww-form-textarea'
+        })
+        this.wwObject.content.data.submit = wwLib.wwObject.getDefault({
+            type: 'ww-form-submit'
+        })
         this.wwObjectCtrl.update(this.wwObject)
         this.$emit('ww-loaded', this);
     }
@@ -556,104 +439,14 @@ export default {
     width: 100%;
     min-width: 50px;
     min-height: 25px;
-    .elem-button {
-        cursor: pointer;
-        position: relative;
-        .loading-button {
-            opacity: 0;
-            visibility: hidden;
-        }
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-        }
-        .loading:after {
-            content: " ";
-            display: block;
-            width: 30px;
-            height: 30px;
-            margin: 1px;
-            border-radius: 50%;
-            border: 3px solid #000;
-            border-color: #000 transparent #000 transparent;
-            animation: loading 1.2s linear infinite;
-        }
+    /* wwManager:start */
+    .ww-orange-button {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: translate(-50%, -50%);
+        z-index: 1;
     }
-    .elem-input {
-        width: 100%;
-        .input {
-            width: 100%;
-            outline: none;
-        }
-        .textarea {
-            width: 100%;
-            outline: none;
-            resize: none;
-        }
-    }
-    .elem-checkbox {
-        display: flex;
-        flex-wrap: nowrap;
-        width: 100%;
-        .checkbox {
-            outline: none;
-            margin-right: 10px;
-        }
-        .checkbox-text {
-            width: 100%;
-        }
-    }
-    .elem-file {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        .input-button {
-            cursor: pointer;
-            flex-shrink: 0;
-            margin-right: 10px;
-        }
-        input {
-            opacity: 0;
-            visibility: hidden;
-            position: absolute;
-        }
-    }
-    .error-message {
-        color: red;
-        font-size: 70%;
-    }
+    /* wwManager:end */
 }
-@keyframes loading {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.top-ww-objs {
-    position: relative;
-    padding-top: 20px;
-    margin-bottom: 20px;
-    .top-ww-obj {
-        position: relative;
-    }
-}
-
-/* wwManager:start */
-.ww-orange-button {
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform: translate(-50%, -50%);
-    z-index: 1;
-}
-/* wwManager:end */
 </style>

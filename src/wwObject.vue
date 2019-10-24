@@ -34,10 +34,6 @@
             >
                 <wwObject v-for="wwObj in wwObject.content.data.content" :key="wwObj.uniqueId" :ww-object="wwObj"></wwObject>
             </wwLayoutColumn>
-
-            <wwObject :ww-object="wwObject.content.data.input"></wwObject>
-            <wwObject :ww-object="wwObject.content.data.textarea"></wwObject>
-            <wwObject :ww-object="wwObject.content.data.submit"></wwObject>
         </form>
     </div>
 </template>
@@ -412,15 +408,6 @@ export default {
         this.wwObject.content.data.content =  this.wwObject.content.data.content || []
         this.wwObject.content.data.config = this.wwObject.content.data.config || {}
 
-        this.wwObject.content.data.input = wwLib.wwObject.getDefault({
-            type: 'ww-form-input'
-        })
-        this.wwObject.content.data.textarea = wwLib.wwObject.getDefault({
-            type: 'ww-form-textarea'
-        })
-        this.wwObject.content.data.submit = wwLib.wwObject.getDefault({
-            type: 'ww-form-submit'
-        })
         this.wwObjectCtrl.update(this.wwObject)
         this.$emit('ww-loaded', this);
     }

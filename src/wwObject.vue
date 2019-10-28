@@ -3,35 +3,20 @@
         <!-- wwManager:start -->
         <wwOrangeButton class="ww-orange-button" v-if="wwObjectCtrl.getSectionCtrl().getEditMode() == 'CONTENT'"></wwOrangeButton>
         <!-- wwManager:end -->
-        
-        <form :id="wwObject.content.data.config.name" 
-            :autocomplete="wwObject.content.data.config.autocomplete" 
-            :method="methodForm"
-            :action="wwObject.content.data.config.action" 
-            :enctype="wwObject.content.data.config.encType"
-            :acceptCharset="wwObject.content.data.config.acceptCharset"
-            :target="wwObject.content.data.config.target"
-            @submit="redirect">
-            
+
+        <form :id="wwObject.content.data.config.name" :autocomplete="wwObject.content.data.config.autocomplete" :method="methodForm" :action="wwObject.content.data.config.action" :enctype="wwObject.content.data.config.encType" :acceptCharset="wwObject.content.data.config.acceptCharset" :target="wwObject.content.data.config.target" @submit="redirect">
             <!-- SPECIFIC METHOD (PUT, PATCH, DELETE, etc...) -->
-            <input v-if="wwObject.content.data.config.method !== 'POST'" type="hidden" name="_method" :value="wwObject.content.data.config.method"/>
-            
+            <input v-if="wwObject.content.data.config.method !== 'POST'" type="hidden" name="_method" :value="wwObject.content.data.config.method" />
+
             <!-- WEWEB-EMAIL CONFIGURATION -->
             <span v-if="wwObject.content.data.config.type === 'weweb-email'">
-                <input type="hidden" name="ww-type" value="form">
-                <input type="hidden" name="ww-from" :value="wwObject.content.data.config.from">
-                <input type="hidden" name="ww-recipients" :value="JSON.stringify(wwObject.content.data.config.recipients)">
+                <input type="hidden" name="ww-type" value="form" />
+                <input type="hidden" name="ww-from" :value="wwObject.content.data.config.from" />
+                <input type="hidden" name="ww-recipients" :value="JSON.stringify(wwObject.content.data.config.recipients)" />
             </span>
 
             <!-- FORM CONTENT -->
-            <wwLayoutColumn
-                tag="div"
-                class="ww-obj"
-                ww-default="ww-image"
-                :ww-list="wwObject.content.data.content"
-                @ww-add="add(wwObject.content.data.content, $event)"
-                @ww-remove="remove(wwObject.content.data.content, $event)"
-            >
+            <wwLayoutColumn tag="div" class="ww-obj" ww-default="ww-image" :ww-list="wwObject.content.data.content" @ww-add="add(wwObject.content.data.content, $event)" @ww-remove="remove(wwObject.content.data.content, $event)" :ww-store-config="storeConfig">
                 <wwObject v-for="wwObj in wwObject.content.data.content" :key="wwObj.uniqueId" :ww-object="wwObj"></wwObject>
             </wwLayoutColumn>
         </form>
@@ -46,10 +31,29 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
         en: 'Select Form element',
         fr: 'Sélectionner un élément de formulaire'
     },
-    type: 'wwPopupEditWwObject',
+    type: 'wwPopupList',
     buttons: null,
     storyData: {
         list: {
+            SUBMIT: {
+                separator: {
+                    en: 'Action',
+                    fr: 'Action'
+                },
+                title: {
+                    en: 'Submit Button',
+                    fr: `Bouton d'envoies`
+                },
+                desc: {
+                    en: 'To send all the form element data',
+                    fr: `Pour envoyer toutes les données d'élément de formulaire`
+                },
+                icon: 'wwi wwi-button',
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-submit'
+                }
+            },
             TEXT: {
                 separator: {
                     en: 'Inputs',
@@ -64,7 +68,20 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     fr: 'Nom, prénom, adresse, etc.'
                 },
                 icon: 'wwi wwi-text',
-                next: 'WWFORM_INPUT_CONFIG'
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-input',
+                    wwObjectData: {
+                        config: {
+                            name: 'text',
+                            type: 'text',
+                            placeholder: {
+                                en: 'Enter text...',
+                                fr: 'Entrez du text...'
+                            }
+                        }
+                    }
+                }
             },
             EMAIL: {
                 title: {
@@ -75,8 +92,21 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     en: 'john@doe.com',
                     fr: 'john@doe.com'
                 },
-                icon: 'wwi wwi-text',
-                next: 'WWFORM_INPUT_CONFIG'
+                icon: 'wwi wwi-newsletter',
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-input',
+                    wwObjectData: {
+                        config: {
+                            name: 'email',
+                            type: 'email',
+                            placeholder: {
+                                en: 'Enter email...',
+                                fr: 'Entrez une adresse email...'
+                            }
+                        }
+                    }
+                }
             },
             PASSWORD: {
                 title: {
@@ -87,8 +117,21 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     en: '**********',
                     fr: '**********'
                 },
-                icon: 'wwi wwi-text',
-                next: 'WWFORM_INPUT_CONFIG'
+                icon: 'fas fa-key',
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-input',
+                    wwObjectData: {
+                        config: {
+                            name: 'password',
+                            type: 'password',
+                            placeholder: {
+                                en: 'Enter password...',
+                                fr: 'Entrez un mot de passe...'
+                            }
+                        }
+                    }
+                }
             },
             PHONE: {
                 title: {
@@ -99,8 +142,21 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     en: 'Match format of your choice like 123-45-678',
                     fr: 'Correspond au format de votre choix comme 123-45-678'
                 },
-                icon: 'wwi wwi-text',
-                next: 'WWFORM_INPUT_CONFIG'
+                icon: 'fas fa-phone',
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-input',
+                    wwObjectData: {
+                        config: {
+                            name: 'phone',
+                            type: 'phone',
+                            placeholder: {
+                                en: 'Enter phone number...',
+                                fr: 'Entrez un numéro de téléphone...'
+                            }
+                        }
+                    }
+                }
             },
             TEXTAREA: {
                 title: {
@@ -111,8 +167,11 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     en: 'For large texts like messages',
                     fr: 'Pour de grand texte comme des messages'
                 },
-                icon: 'wwi wwi-text',
-                next: 'WWFORM_TEXTAREA_CONFIG'
+                icon: 'fas fa-align-justify',
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-textarea'
+                }
             },
             NUMBER: {
                 title: {
@@ -123,8 +182,21 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     en: 'To select an integer',
                     fr: 'Pour choisir un nombre'
                 },
-                // icon: 'wwi wwi-number',
-                next: 'WWFORM_INPUT_CONFIG'
+                icon: 'fas fa-square-root-alt',
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-input',
+                    wwObjectData: {
+                        config: {
+                            name: 'number',
+                            type: 'number',
+                            placeholder: {
+                                en: 'Enter a number...',
+                                fr: 'Entrez un nombre...'
+                            }
+                        }
+                    }
+                }
             },
             CHECKBOX: {
                 separator: {
@@ -140,7 +212,10 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     fr: 'Pour choisir une proposition'
                 },
                 icon: 'far fa-check-square',
-                next: 'WWFORM_CHECKBOX_CONFIG'
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-checkbox'
+                }
             },
             RADIO: {
                 title: {
@@ -152,7 +227,10 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     fr: 'Pour choisir une propositions'
                 },
                 icon: 'far fa-dot-circle',
-                next: 'WWFORM_RADIO_CONFIG'
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-radio'
+                }
             },
             DROPDOWN: {
                 title: {
@@ -164,7 +242,10 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     fr: 'Pour choisir une valeur depuis un menu déroulant'
                 },
                 icon: 'wwi wwi-chevron-down',
-                next: 'WWFORM_DROPDOWN_CONFIG'
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-dropdown'
+                }
             },
             // RANGE: {
             //     title: {
@@ -191,7 +272,20 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     fr: 'Ouvre un sélecteur de date'
                 },
                 icon: 'far fa-calendar-minus',
-                next: 'WWFORM_INPUT_CONFIG'
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-input',
+                    wwObjectData: {
+                        config: {
+                            name: 'date',
+                            type: 'date',
+                            placeholder: {
+                                en: 'Enter a date...',
+                                fr: 'Entrez une date...'
+                            }
+                        }
+                    }
+                }
             },
             TIME: {
                 title: {
@@ -203,7 +297,20 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     fr: `Ouvre un sélecteur d'heure`
                 },
                 icon: 'far fa-clock',
-                next: 'WWFORM_INPUT_CONFIG'
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-input',
+                    wwObjectData: {
+                        config: {
+                            name: 'time',
+                            type: 'time',
+                            placeholder: {
+                                en: 'Enter a time...',
+                                fr: 'Entrez une heure...'
+                            }
+                        }
+                    }
+                }
             },
             // FILE: {
             //     title: {
@@ -229,22 +336,6 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
             //     icon: 'wwi wwi-color',
             //     // next: 'WWFORM_INPUT_CONFIG'
             // },
-            SUBMIT: {
-                separator: {
-                    en: 'Action',
-                    fr: 'Action'
-                },
-                title: {
-                    en: 'Submit Button',
-                    fr: `Bouton d'envoies`
-                },
-                desc: {
-                    en: 'To send all the form element data',
-                    fr: `Pour envoyer toutes les données d'élément de formulaire`
-                },
-                icon: 'wwi wwi-button',
-                // next: 'WWFORM_SUBMIT_CONFIG'
-            },
             CAPTCHA_V2: {
                 title: {
                     en: 'Captcha v2 Google',
@@ -255,7 +346,10 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
                     fr: 'Pour empêcher des robots de vous envoyer un message'
                 },
                 icon: 'far fa-square',
-                next: 'WWFORM_CAPTCHA_CONFIG'
+                next: null,
+                result: {
+                    wwObjectType: 'ww-form-captcha'
+                }
             },
         }
     }
@@ -290,7 +384,7 @@ wwLib.wwPopups.addStory('WW_FORM_OPTIONS', {
     buttons: null,
     storyData: {
         list: {
-             ACTION_API: {
+            ACTION_API: {
                 separator: {
                     en: 'CONFIGURATION',
                     fr: 'CONFIGURATION'
@@ -317,14 +411,32 @@ export default {
         wwObjectCtrl: Object,
     },
     data() {
-        return {}
+        return {
+            storeConfig: {
+                additionalOptions: {
+                    WWFORM_SUBMIT: {
+                        separator: {
+                            en: 'Form elements',
+                            fr: 'Elements de formulaire'
+                        },
+                        title: {
+                            en: 'Form elements',
+                            fr: 'Elements de formulaire'
+                        },
+                        icon: 'wwi wwi-newsletter',
+                        shortcut: 's',
+                        next: 'WWFORM_ELEMENTS'
+                    }
+                }
+            }
+        }
     },
     computed: {
         wwObject() {
             return this.wwObjectCtrl.get();
         },
         target() {
-            return '/'+wwLib.wwWebsiteData.getPageRoute(this.wwObject.content.data.config.linkPage)
+            return '/' + wwLib.wwWebsiteData.getPageRoute(this.wwObject.content.data.config.linkPage)
         },
         methodForm() {
             // Only accept POST and GET
@@ -405,7 +517,7 @@ export default {
         /* wwManager:end */
     },
     mounted() {
-        this.wwObject.content.data.content =  this.wwObject.content.data.content || []
+        this.wwObject.content.data.content = this.wwObject.content.data.content || []
         this.wwObject.content.data.config = this.wwObject.content.data.config || {}
 
         this.wwObjectCtrl.update(this.wwObject)

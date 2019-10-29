@@ -4,7 +4,7 @@
         <wwOrangeButton class="ww-orange-button" v-if="wwObjectCtrl.getSectionCtrl().getEditMode() == 'CONTENT'"></wwOrangeButton>
         <!-- wwManager:end -->
 
-        <form :id="wwObject.content.data.config.name" :autocomplete="wwObject.content.data.config.autocomplete" :method="methodForm" :action="wwObject.content.data.config.action" :enctype="wwObject.content.data.config.encType" :acceptCharset="wwObject.content.data.config.acceptCharset" :target="wwObject.content.data.config.target" @submit="redirect">
+        <form :id="wwObject.content.data.config.name" :autocomplete="wwObject.content.data.config.autocomplete" :method="methodForm" :action="wwObject.content.data.config.action" :enctype="wwObject.content.data.config.encType" :acceptCharset="wwObject.content.data.config.acceptCharset" :target="wwObject.content.data.config.target">
             <!-- SPECIFIC METHOD (PUT, PATCH, DELETE, etc...) -->
             <input v-if="wwObject.content.data.config.method !== 'POST'" type="hidden" name="_method" :value="wwObject.content.data.config.method" />
 
@@ -13,6 +13,7 @@
                 <input type="hidden" name="ww-type" value="form" />
                 <input type="hidden" name="ww-from" :value="wwObject.content.data.config.from" />
                 <input type="hidden" name="ww-recipients" :value="JSON.stringify(wwObject.content.data.config.recipients)" />
+                <input type="hidden" name="ww-redirect" :value="wwObject.content.data.config.linkPage" />
             </span>
 
             <!-- FORM CONTENT -->

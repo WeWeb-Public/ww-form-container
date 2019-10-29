@@ -4,7 +4,7 @@
         <wwOrangeButton class="ww-orange-button" v-if="wwObjectCtrl.getSectionCtrl().getEditMode() == 'CONTENT'"></wwOrangeButton>
         <!-- wwManager:end -->
 
-        <form :id="wwObject.content.data.config.name" :autocomplete="wwObject.content.data.config.autocomplete" :method="methodForm" :action="wwObject.content.data.config.action" :enctype="wwObject.content.data.config.encType" :acceptCharset="wwObject.content.data.config.acceptCharset" :target="wwObject.content.data.config.target">
+        <form :id="wwObject.content.data.config.name" :autocomplete="wwObject.content.data.config.autocomplete" @submit.prevent="submit()" :enctype="wwObject.content.data.config.encType" :acceptCharset="wwObject.content.data.config.acceptCharset" :target="wwObject.content.data.config.target">
             <!-- SPECIFIC METHOD (PUT, PATCH, DELETE, etc...) -->
             <input v-if="wwObject.content.data.config.method !== 'POST'" type="hidden" name="_method" :value="wwObject.content.data.config.method" />
 
@@ -13,7 +13,6 @@
                 <input type="hidden" name="ww-type" value="form" />
                 <input type="hidden" name="ww-from" :value="wwObject.content.data.config.from" />
                 <input type="hidden" name="ww-recipients" :value="JSON.stringify(wwObject.content.data.config.recipients)" />
-                <input type="hidden" name="ww-redirect" :value="wwObject.content.data.config.linkPage" />
             </span>
 
             <!-- FORM CONTENT -->
@@ -442,7 +441,7 @@ export default {
         methodForm() {
             // Only accept POST and GET
             return this.method === 'POST' || this.method === 'GET' ? this.method : 'POST'
-        },
+        }
     },
     methods: {
         /* wwManager:start */
@@ -474,6 +473,22 @@ export default {
             } catch (err) {
                 wwLib.wwLog.error('ERROR:', err)
             }
+        },
+        async submit() {
+            const form = this.$el.querySelector('#' + this.wwObject.content.data.config.name);
+            // console.log(form);
+
+            const formData = new FormData(form);
+
+            await axios({
+                method: this.methodForm,
+                url: this.wwObject.content.data.config.action,
+                data: formData
+            })
+
+            this.goToPage(this.wwObject.content.data.config.linkPage);
+
+            return false;
         },
         /* wwManager:start */
         async options() {

@@ -6,6 +6,10 @@ const version = '__VERSION__';
 const addComponent = function () {
     if (window.vm) {
 
+        const designName = wwLib.wwWebsiteData.getWebsiteNameFromRoute()
+        const designId = wwLib.wwWebsiteData.getInfo().id
+        const apiUrl = wwLib.wwApiRequests._getApiUrl()
+
         wwLib.wwObject.register({
             /* wwManager:start */
             cmsOptions: {
@@ -23,25 +27,76 @@ const addComponent = function () {
                         icon: 'wwi wwi-edit-other',
                         main: true,
                         action: 'options'
+                    }, {
+                        name: 'DEFAULT',
+                        text: {
+                            en: 'Default',
+                            fr: 'Défault'
+                        },
+                        icon: 'far fa-paper-plane',
+                        action: 'defaultStatus'
+                    }, {
+                        name: 'LOADING',
+                        text: {
+                            en: 'Loading',
+                            fr: 'Chargement'
+                        },
+                        icon: 'fa fa-spinner',
+                        action: 'loadingStatus'
+                    }, {
+                        name: 'SUCCESS',
+                        text: {
+                            en: 'Success',
+                            fr: 'Succes'
+                        },
+                        icon: 'wwi wwi-check',
+                        action: 'successStatus'
+                    }, {
+                        name: 'ERROR',
+                        text: {
+                            en: 'Error',
+                            fr: 'Erreur'
+                        },
+                        icon: 'wwi wwi-cross',
+                        action: 'errorStatus'
                     }]
+                    
                 }
             },
             /* wwManager:end */
             content: {
                 type: name,
                 data: {
-                    content: [],
+                    content: [
+                        wwLib.wwObject.getDefault({
+                            type: 'ww-form-input',
+                            data: {
+                                config: {
+                                    name: 'email',
+                                    type: 'email',
+                                    required: true,
+                                    placeholder: {
+                                      en: 'Email',
+                                      fr: 'Entrez une adresse email...'
+                                    }
+                                }
+                            }
+                        }),
+                        wwLib.wwObject.getDefault({ type: 'ww-form-submit' })
+                    ],
                     config: {
-                        weweb: {
-                            enabled: true,
-                            recipients: [{ address: { email: 'damien@weweb.io' } }]
+                        type: 'weweb-email',
+                        name: 'newsletter',
+                        autocomplete: true,
+                        redirect: {
+                            enabled: false
                         },
-                        api: {
-                            enabled: false,
-                            url: '',
-                            method: ''
-                        }
-                    }
+                        action: `${apiUrl}/design/${designId}/send_form_info`,
+                        method: 'POST',
+                        headers: [
+                            { name: 'Content-Type', value: 'multipart/form-data' }
+                        ]
+                    },
                 }
             },
             upsales: {

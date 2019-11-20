@@ -2,21 +2,12 @@
     <div class="ww-form">
         <!-- wwManager:start -->
         <wwOrangeButton class="ww-orange-button" v-if="wwObjectCtrl.getSectionCtrl().getEditMode() == 'CONTENT'"></wwOrangeButton>
+        <div class="ww-form-status" :class="status" v-if="wwObjectCtrl.getSectionCtrl().getEditMode() == 'CONTENT'">Form status: {{status}}</div>
+
         <!-- wwManager:end -->
-
-        <form :id="wwObject.content.data.config.name" :autocomplete="wwObject.content.data.config.autocomplete" :method="methodForm" :action="wwObject.content.data.config.action" :enctype="wwObject.content.data.config.encType" :acceptCharset="wwObject.content.data.config.acceptCharset" :target="wwObject.content.data.config.target" @submit="redirect">
-            <!-- SPECIFIC METHOD (PUT, PATCH, DELETE, etc...) -->
-            <input v-if="wwObject.content.data.config.method !== 'POST'" type="hidden" name="_method" :value="wwObject.content.data.config.method" />
-
-            <!-- WEWEB-EMAIL CONFIGURATION -->
-            <span v-if="wwObject.content.data.config.type === 'weweb-email'">
-                <input type="hidden" name="ww-type" value="form" />
-                <input type="hidden" name="ww-from" :value="wwObject.content.data.config.from" />
-                <input type="hidden" name="ww-recipients" :value="JSON.stringify(wwObject.content.data.config.recipients)" />
-            </span>
-
+        <form :id="wwObject.content.data.config.name" :autocomplete="wwObject.content.data.config.autocomplete" @submit.prevent="submit">
             <!-- FORM CONTENT -->
-            <wwLayoutColumn tag="div" class="ww-obj" ww-default="ww-image" :ww-list="wwObject.content.data.content" @ww-add="add(wwObject.content.data.content, $event)" @ww-remove="remove(wwObject.content.data.content, $event)" :ww-store-config="storeConfig">
+            <wwLayoutColumn ref="content" tag="div" class="ww-obj" ww-default="ww-image" :ww-list="wwObject.content.data.content" @ww-add="add(wwObject.content.data.content, $event)" @ww-remove="remove(wwObject.content.data.content, $event)" :ww-store-config="storeConfig">
                 <wwObject v-for="wwObj in wwObject.content.data.content" :key="wwObj.uniqueId" :ww-object="wwObj"></wwObject>
             </wwLayoutColumn>
         </form>
@@ -367,10 +358,10 @@ wwLib.wwPopups.addStory('WW_FORM_CONFIG_POPUP', {
     buttons: {
         OK: {
             text: {
-                en: 'Next',
-                fr: 'Suivant'
+                en: 'Ok',
+                fr: 'Valider'
             },
-            next: 'LINK_INTERNAL'
+            next: false
         }
     }
 })
@@ -412,6 +403,7 @@ export default {
     },
     data() {
         return {
+            status: 'default',
             storeConfig: {
                 additionalOptions: {
                     WWFORM_SUBMIT: {
@@ -434,16 +426,113 @@ export default {
     computed: {
         wwObject() {
             return this.wwObjectCtrl.get();
-        },
-        target() {
-            return '/' + wwLib.wwWebsiteData.getPageRoute(this.wwObject.content.data.config.linkPage)
-        },
-        methodForm() {
-            // Only accept POST and GET
-            return this.method === 'POST' || this.method === 'GET' ? this.method : 'POST'
-        },
+        }
+    },
+    mounted() {
+        this.init()
+        this.$emit('ww-loaded', this);
     },
     methods: {
+        init() {
+            this.wwObject.content.data.content = this.wwObject.content.data.content || []
+            this.wwObject.content.data.config = this.wwObject.content.data.config || {}
+
+            this.migrateData()
+            this.wwObjectCtrl.update(this.wwObject)
+        },
+        migrateData() {
+            /* wwManager:start */
+            if (this.wwObject.content.data.config.type === 'weweb-email') {
+                const designName = wwLib.wwWebsiteData.getWebsiteNameFromRoute()
+                this.wwObject.content.data.config.recipients = this.wwObject.content.data.config.recipients || [{ address: { email: wwLib.$store.getters['manager/getUser'].email } }]
+                this.wwObject.content.data.config.hiddenData = [
+                    { name: 'ww-type', value: 'form' },
+                    { name: 'ww-from', value: designName },
+                    { name: 'ww-recipients', value: JSON.stringify(this.wwObject.content.data.config.recipients) },
+                    { name: 'ww-color', value: this.wwObject.content.data.config.color || '#ce003b' }
+                ]
+            }
+            /* wwManager:end */
+            if (!this.wwObject.content.data.config.headers) {
+                this.wwObject.content.data.config.headers = [{ name: 'Content-Type', value: this.wwObject.content.data.config.encType }]
+            }
+            if (!this.wwObject.content.data.config.redirect) {
+                this.wwObject.content.data.config.redirect = {
+                    enabled: true,
+                    linkPage: this.wwObject.content.data.config.linkPage
+                }
+            }
+        },
+        defaultStatus() {
+            this.status = 'default'
+            wwLib.$emit(`ww-form-status`, this.status)
+            this.wwObjectCtrl.update(this.wwObject);
+        },
+        loadingStatus() {
+            this.status = 'loading'
+            wwLib.$emit(`ww-form-status`, this.status)
+            this.wwObjectCtrl.update(this.wwObject);
+        },
+        successStatus() {
+            this.status = 'success'
+            wwLib.$emit(`ww-form-status`, this.status)
+            this.wwObjectCtrl.update(this.wwObject);
+        },
+        errorStatus() {
+            this.status = 'error'
+            wwLib.$emit(`ww-form-status`, this.status)
+            this.wwObjectCtrl.update(this.wwObject);
+        },
+        goToPage(pageId) {
+            const path = wwLib.wwWebsiteData.getPageRoute(pageId, true) || '/';
+            wwLib.$router.push(path);
+            this.$emit('next', null);
+        },
+        async submit(form) {
+            try {
+                // CHANGE STATUS
+                this.loadingStatus()
+
+                // INIT DATA
+                const headers = {}
+                const data = new FormData()
+
+                // ADD HEADERS REQUEST
+                for (const elem of this.wwObject.content.data.config.headers) {
+                    headers[elem.name] = elem.value
+                }
+                // ADD HIDDEN DATA REQUEST
+                for (const elem of this.wwObject.content.data.config.hiddenData) {
+                    data.append(elem.name, elem.value)
+                }
+                // ADD DATA REQUEST
+                for (const elem of form.srcElement.elements) {
+                    if (elem.nodeName === 'INPUT') {
+                        data.append(elem.name, elem.value)
+                    }
+                }
+            
+                // REQUEST
+                await axios({
+                    method: this.wwObject.content.data.config.method,
+                    url: this.wwObject.content.data.config.action,
+                    data,
+                    headers
+                })
+                
+                // REDIRECT
+                if (this.wwObject.content.data.config.redirect.enabled) {
+                    this.goToPage(this.wwObject.content.data.config.redirect.linkPage)
+                }
+                
+                // CHANGE STATUS
+                this.successStatus()
+            } catch (err) {
+                // CHANGE STATUS
+                this.errorStatus()
+                wwLib.wwLog.error('ERROR:', err)
+            }
+        },
         /* wwManager:start */
         add(list, options) {
             try {
@@ -461,20 +550,6 @@ export default {
                 wwLib.wwLog.error('ERROR:', error);
             }
         },
-        /* wwManager:end */
-        goToPage(pageId) {
-            const path = wwLib.wwWebsiteData.getPageRoute(pageId, true) || '/';
-            wwLib.$router.push(path);
-            this.$emit('next', null);
-        },
-        async redirect(data) {
-            try {
-                this.goToPage(this.wwObject.content.data.config.linkPage)
-            } catch (err) {
-                wwLib.wwLog.error('ERROR:', err)
-            }
-        },
-        /* wwManager:start */
         async options() {
             let copyObj = JSON.parse(JSON.stringify(this.wwObject)) // to clean
             copyObj.uniqueId += 1
@@ -492,22 +567,18 @@ export default {
                     this.wwObject.content.data.config.type = result.config.type
                     if (result.config.type === 'weweb-email') {
                         this.wwObject.content.data.config.recipients = result.config.recipients
-                        this.wwObject.content.data.config.from = result.config.from
+                        this.wwObject.content.data.config.color = result.config.color
                     }
 
                     this.wwObject.content.data.config.name = result.config.name
                     this.wwObject.content.data.config.autocomplete = result.config.autocomplete
                     this.wwObject.content.data.config.action = result.config.action
                     this.wwObject.content.data.config.method = result.config.method
-
-                    this.wwObject.content.data.config.target = result.config.target
-                    this.wwObject.content.data.config.encType = result.config.encType
-                    this.wwObject.content.data.config.acceptCharset = result.config.acceptCharset
+                    this.wwObject.content.data.config.headers = result.config.headers
+                    this.wwObject.content.data.config.hiddenData = result.config.hiddenData
+                    this.wwObject.content.data.config.redirect = result.config.redirect
                 }
 
-                if (typeof (result.linkPage) != 'undefined') {
-                    this.wwObject.content.data.config.linkPage = result.linkPage;
-                }
                 this.wwObjectCtrl.update(this.wwObject);
             } catch (err) {
                 wwLib.wwLog.error('ERROR', err)
@@ -515,13 +586,6 @@ export default {
             wwLib.wwObjectHover.removeLock();
         }
         /* wwManager:end */
-    },
-    mounted() {
-        this.wwObject.content.data.content = this.wwObject.content.data.content || []
-        this.wwObject.content.data.config = this.wwObject.content.data.config || {}
-
-        this.wwObjectCtrl.update(this.wwObject)
-        this.$emit('ww-loaded', this);
     }
 };
 </script>
@@ -545,6 +609,27 @@ export default {
         left: 0;
         transform: translate(-50%, -50%);
         z-index: 1;
+    }
+    .ww-form-status {
+        position: absolute;
+        top: 0;
+        left: 20px;
+        transform: translate(0%, -50%);
+        z-index: 1;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 2px;
+        font-size: 12px;
+        background-image: linear-gradient(90deg,#2e85c2,#1763a9);
+        &.error {
+            background: linear-gradient(90deg,#e02a4d 0,#ce003b);
+        }
+        &.success {
+            background-image: linear-gradient(90deg,#49b9b3,#19947c);
+        }
+        &.loading {
+            background: linear-gradient(90deg,#ea5e1c 0,#ef811a);
+        }
     }
     /* wwManager:end */
 }

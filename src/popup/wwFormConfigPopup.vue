@@ -4,11 +4,16 @@
         <div class="content">
             <div class="elem">
                 <div class="title">Form Name</div>
-                <wwManagerInput class="input" :color="getInputColor(result.config.name, 'green')" v-model="result.config.name" label="Name (ex: newsletter, etc...)"></wwManagerInput>
+                <wwManagerInput class="input" :color="getInputColor(result.config.name, 'green')" v-model="result.config.name" label="Name (ex: newsletter, etc...)" @change="updateNameForm"></wwManagerInput>
             </div>
             <div class="elem">
                 <div class="title">Autocomplete</div>
                 <wwManagerRadio :value="result.config.autocomplete" @change="result.config.autocomplete = $event"></wwManagerRadio>
+            </div>
+            <div class="elem">
+                <div class="title">Page redirection after submit</div>
+                <wwManagerRadio :value="result.config.redirect.enabled" @change="result.config.redirect.enabled = $event"></wwManagerRadio>
+                <wwManagerSelect class="elem" v-if="result.config.redirect.enabled" :options="pagesOptions" :value="result.config.redirect.linkPage" @change="result.config.redirect.linkPage = $event"></wwManagerSelect>
             </div>
             <div class="elem">
                 <div class="title">Form Preset</div>
@@ -17,13 +22,17 @@
         </div>
         <!-- WEWEB-EMAIL CONFIGURATION -->
         <div class="content" v-if="result.config.type === 'weweb-email'">
-            <div class="elem" >
+            <div class="elem">
                 <div class="title">Recipients</div>
                 <div class="email" v-for="(recipient, index) in result.config.recipients" :key="recipient.id">
                     <wwManagerInput class="input" :color="getInputColor(recipient.address.email, 'green')" v-model="recipient.address.email" :validation="validateEmail" label="Email"></wwManagerInput>
-                    <wwManagerButton class="close" center color="red" @click="removeRecipient(index)">&times;</wwManagerButton>
+                    <div class="remove-elem" center color="red" @click="removeRecipient(index)">&times;</div>
                 </div>
                 <wwManagerButton class="add-recipient" center color="blue" @click="addRecipient">Add recipient</wwManagerButton>
+            </div>
+            <div class="elem">
+                <div class="title">Weweb Email color</div>
+                <wwManagerColorSelect :value="result.config.color" @change="result.config.color = $event"></wwManagerColorSelect>
             </div>
         </div>
         <!-- CUSTOM-API CONFIGURATION -->
@@ -37,16 +46,22 @@
                 <wwManagerInput class="input" :color="getInputColor(result.config.action, 'green')" v-model="result.config.action" label="Url" :validation="validateUrl"></wwManagerInput>
             </div>
             <div class="elem">
-                <div class="title">Target</div>
-                <wwManagerSelect :options="targetOptions" :value="result.config.target" @change="result.config.target = $event"></wwManagerSelect>
+                <div class="title">Hidden form inputs</div>
+                <div v-for="(elem, index) in result.config.hiddenData" :key="`hidden-data-${index}`" class="data-request">
+                    <wwManagerInput class="input" color="blue" v-model="elem.name" label="Name"></wwManagerInput>
+                    <wwManagerInput class="input data-request-value" color="green" v-model="elem.value" label="Value"></wwManagerInput>
+                    <div class="remove-elem" @click="removeElem(result.config.hiddenData, index)">&times;</div>
+                </div>
+                <wwManagerButton class="data-request-add" center color="blue" @click="addElem(result.config.hiddenData)">Add</wwManagerButton>
             </div>
             <div class="elem">
-                <div class="title">Enctype</div>
-                <wwManagerSelect :options="encTypeOptions" :value="result.config.enctype" @change="result.config.enctype = $event"></wwManagerSelect>
-            </div>
-            <div class="elem">
-                <div class="title">Accept Charset</div>
-                <wwManagerInput class="input" color="blue" v-model="result.config.acceptCharset" label="accept-charset"></wwManagerInput>
+                <div class="title">Request Headers</div>
+                <div v-for="(elem, index) in result.config.headers" :key="`headers-${index}`" class="data-request">
+                    <wwManagerInput class="input" color="blue" v-model="elem.name" label="Name"></wwManagerInput>
+                    <wwManagerInput class="input data-request-value" color="green" v-model="elem.value" label="Value"></wwManagerInput>
+                    <div class="remove-elem" @click="removeElem(result.config.headers, index)">&times;</div>
+                </div>
+                <wwManagerButton class="data-request-add" center color="blue" @click="addElem(result.config.headers)">Add</wwManagerButton>
             </div>
         </div>
     </div>
@@ -69,6 +84,10 @@ export default {
             designName: wwLib.wwWebsiteData.getWebsiteNameFromRoute(),
             designId: wwLib.wwWebsiteData.getInfo().id,
             apiUrl: wwLib.wwApiRequests._getApiUrl(),
+            pagesOptions: {
+                type: 'text',
+                values: []
+            },
             // WWOBJECT
             wwObject: this.options.data.wwObject,
             // DATA
@@ -80,10 +99,16 @@ export default {
                     type: 'weweb-email',
                     action: '',
                     method: '',
-                    target: '',
-                    enctype: '',
-                    acceptCharset: '',
-                    recipients: []
+                    redirect: {
+                        enabled: false,
+                        linkPage: undefined
+                    },
+                    hiddenData: [],
+                    headers: [],
+                    // WEWEB-EMAIL CONFIGURATION
+                    recipients: [],
+                    from: '',
+                    color: '#ce003b'
                 }
             },
             // SELECT OPTIONS
@@ -139,59 +164,7 @@ export default {
                     }
                 }]
             },
-            encTypeOptions: {
-                type: 'text',
-                values: [{
-                    value: 'application/x-www-form-urlencoded',
-                    default: true,
-                    text: {
-                        en: 'application/x-www-form-urlencoded',
-                        fr: 'application/x-www-form-urlencoded'
-                    }
-                }, {
-                    value: 'multipart/form-data',
-                    text: {
-                        en: 'multipart/form-data',
-                        fr: 'multipart/form-data'
-                    }
-                }, {
-                    value: 'text/plain',
-                    text: {
-                        en: 'text/plain',
-                        fr: 'text/plain'
-                    }
-                }]
-            },
-            targetOptions: {
-                type: 'text',
-                values: [{
-                    value: '_self',
-                    default: true,
-                    text: {
-                        en: 'self',
-                        fr: 'self'
-                    }
-                }, {
-                    value: '_parent',
-                    text: {
-                        en: 'parent',
-                        fr: 'parent'
-                    }
-                }, {
-                    value: '_top',
-                    text: {
-                        en: 'top',
-                        fr: 'top'
-                    }
-                }, {
-                    value: '_blank',
-                    text: {
-                        en: 'blank',
-                        fr: 'blank'
-                    }
-                }]
-            },
-            // INPUT VALISATION
+            // INPUT VALIDATION
             validateUrl: {
                 regex: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}(\.[a-z]{2,6})?\b([-a-zA-Z0-9@:%_\+.~#?&//=\,]*)$/gi,
                 message: {
@@ -210,21 +183,33 @@ export default {
     },
     watch: {
         type() {
-            this.result.config.type = this.type
             if (this.type === 'weweb-email') { // WEWEB-EMAIL CONFIGURATION
                 this.result.config.action = `${this.apiUrl}/design/${this.designId}/send_form_info`
                 this.result.config.method = 'POST'
-                this.result.config.encType = 'multipart/form-data'
-                this.result.config.recipients = this.result.config.recipients || []
-                this.result.config.from = this.designName
-                this.result.config.target = '_self'
-            } else { // DEFAULT CONFIGURATION
+                this.result.config.recipients = this.result.config.recipients || [{ address: { email: wwLib.$store.getters['manager/getUser'].email } }]
+                this.result.config.color = this.result.config.color
+                this.result.config.headers = [{ name: 'Content-Type', value: 'multipart/form-data' }]
+                this.result.config.hiddenData = [{
+                        name: 'ww-type',
+                        value: 'form'
+                    }, {
+                        name: 'ww-from',
+                        value: this.designName
+                    }, {
+                        name: 'ww-recipients',
+                        value: JSON.stringify(this.result.config.recipients)
+                    }, {
+                        name: 'ww-color',
+                        value: this.result.config.color
+                    }]
+            } else if (this.result.config.type === 'weweb-email') { // DEFAULT CONFIGURATION
                 this.result.config.action = ''
                 this.result.config.method = ''
-                this.result.config.enctype = ''
-                this.result.config.acceptCharset = ''
-                this.result.config.target = ''
+                this.result.config.headers = []
+                this.result.config.hiddenData = []
+                this.result.config.recipients = undefined
             }
+            this.result.config.type = this.type
         }
     },
     methods: {
@@ -237,15 +222,36 @@ export default {
             this.result.config.autocomplete = this.wwObject.content.data.config.autocomplete || this.result.config.autocomplete
             this.result.config.action = this.wwObject.content.data.config.action || this.result.config.action
             this.result.config.method = this.wwObject.content.data.config.method || this.result.config.method
-            this.result.config.target = this.wwObject.content.data.config.target || this.result.config.target
-            this.result.config.enctype = this.wwObject.content.data.config.enctype || this.result.config.enctype
-            this.result.config.acceptCharset = this.wwObject.content.data.config.acceptCharset || this.result.config.acceptCharset
+            this.result.config.redirect = this.wwObject.content.data.config.redirect || this.result.config.redirect
+
+            // CUSTOM-API CONFIGURATION
+            this.result.config.headers = this.wwObject.content.data.config.headers || this.result.config.headers
+            this.result.config.hiddenData = this.wwObject.content.data.config.hiddenData || this.result.config.hiddenData
 
             // WEWEB-EMAIL CONFIGURATION
             this.result.config.recipients = this.initList(this.wwObject.content.data.config.recipients)
+            this.result.config.from = this.wwObject.content.data.config.from || this.result.config.from
+            this.result.config.color = this.wwObject.content.data.config.color || this.result.config.color
             
             this.options.result = this.result
             this.type = this.result.config.type
+            this.initPageOptions()
+        },
+        initPageOptions() {
+            for (const page of wwLib.wwWebsiteData.getPages()) {
+                this.pagesOptions.values.push({
+                    value: page.id,
+                    text: {
+                        en: page.name,
+                        fr: page.name
+                    }
+                })
+            }
+            this.pagesOptions.values[0].default = true
+            this.pagesOptions.values.sort((a, b) => a.text.en.localeCompare(b.text.en))
+        },
+        updateNameForm() {
+            this.result.config.name = this.result.config.name.trim().replace(/\s/gm, '-')
         },
         // WEWEB-EMAIL CONFIGURATION
         initList(list) {
@@ -265,6 +271,12 @@ export default {
         // UTILS
         getInputColor(inputValue, defaultColor = 'green') {
             return (inputValue) ? defaultColor : 'orange'
+        },
+        addElem(array) {
+            array.push([])
+        },
+        removeElem(array, index) {
+            array.splice(index, 1)
         }
     },
     created() {
@@ -281,7 +293,6 @@ export default {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        overflow: auto;
         width: 90%;
         margin: 10px auto;
         .elem {
@@ -304,13 +315,6 @@ export default {
             align-items: center;
             justify-content: space-between;
             margin-bottom: 20px;
-            .close {
-                margin-left: 10px;
-                font-size: 25px;
-                .content {
-                    padding: 0px 10px;
-                }   
-            }
         }
     }
 }
@@ -320,6 +324,41 @@ export default {
         .content {
             width: 40%;
         }
+    }
+}
+
+.data-request {
+    display: flex;
+    align-items: center;
+    margin-top: 10px; 
+    .data-request-value {
+        margin-left: 10px; 
+    }
+}
+
+.data-request-add {
+    margin-top: 10px; 
+}
+
+.remove-elem {
+    margin-left: 10px;
+    font-size: 25px;
+    border: 1px solid #e02a4d;
+    border-radius: 50%;
+    min-width: 35px;
+    min-height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e02a4d;
+    transition: all .5s ease;
+    cursor: pointer;
+    .content {
+        padding: 0px 10px;
+    }   
+    &:hover {
+        background: #e02a4d;
+        color: white;
     }
 }
 </style>

@@ -442,6 +442,7 @@ export default {
         },
         migrateData() {
             /* wwManager:start */
+            console.log(this.wwObject.content.data.config.type);
             if (this.wwObject.content.data.config.type === 'weweb-email') {
                 const designName = wwLib.wwWebsiteData.getWebsiteNameFromRoute()
                 this.wwObject.content.data.config.recipients = this.wwObject.content.data.config.recipients || [{ address: { email: wwLib.$store.getters['manager/getUser'].email } }]
@@ -451,6 +452,9 @@ export default {
                     { name: 'ww-recipients', value: JSON.stringify(this.wwObject.content.data.config.recipients) },
                     { name: 'ww-color', value: this.wwObject.content.data.config.color || '#ce003b' }
                 ]
+            }
+            else {
+                this.wwObject.content.data.config.hiddenData = this.wwObject.content.data.config.hiddenData || [];
             }
             /* wwManager:end */
             if (!this.wwObject.content.data.config.headers) {
@@ -511,20 +515,20 @@ export default {
                         data.append(elem.name, elem.value)
                     }
                 }
-            
+
                 // REQUEST
                 await axios({
-                    method: this.wwObject.content.data.config.method,
+                    method: this.wwObject.content.data.config.method || 'POST',
                     url: this.wwObject.content.data.config.action,
                     data,
                     headers
                 })
-                
+
                 // REDIRECT
                 if (this.wwObject.content.data.config.redirect.enabled) {
                     this.goToPage(this.wwObject.content.data.config.redirect.linkPage)
                 }
-                
+
                 // CHANGE STATUS
                 this.successStatus()
             } catch (err) {
@@ -620,15 +624,15 @@ export default {
         padding: 2px 5px;
         border-radius: 2px;
         font-size: 12px;
-        background-image: linear-gradient(90deg,#2e85c2,#1763a9);
+        background-image: linear-gradient(90deg, #2e85c2, #1763a9);
         &.error {
-            background: linear-gradient(90deg,#e02a4d 0,#ce003b);
+            background: linear-gradient(90deg, #e02a4d 0, #ce003b);
         }
         &.success {
-            background-image: linear-gradient(90deg,#49b9b3,#19947c);
+            background-image: linear-gradient(90deg, #49b9b3, #19947c);
         }
         &.loading {
-            background: linear-gradient(90deg,#ea5e1c 0,#ef811a);
+            background: linear-gradient(90deg, #ea5e1c 0, #ef811a);
         }
     }
     /* wwManager:end */

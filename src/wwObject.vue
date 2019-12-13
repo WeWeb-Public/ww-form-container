@@ -512,7 +512,7 @@ export default {
                 }
                 // ADD DATA REQUEST
                 for (const elem of form.srcElement.elements) {
-                    if (elem.nodeName === 'INPUT') {
+                    if (elem.nodeName === 'INPUT' || elem.nodeName === 'TEXTAREA' || elem.nodeName === 'SELECT') {
                         data.append(elem.name, elem.value)
                     }
                 }

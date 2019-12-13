@@ -488,6 +488,7 @@ export default {
             this.wwObjectCtrl.update(this.wwObject);
         },
         goToPage(pageId) {
+            wwLib.wwLinkPopups.closeAll();
             const path = wwLib.wwWebsiteData.getPageRoute(pageId, true) || '/';
             wwLib.$router.push(path);
             this.$emit('next', null);

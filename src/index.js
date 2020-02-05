@@ -60,7 +60,7 @@ const addComponent = function () {
                         icon: 'wwi wwi-cross',
                         action: 'errorStatus'
                     }]
-                    
+
                 }
             },
             /* wwManager:end */
@@ -76,8 +76,8 @@ const addComponent = function () {
                                     type: 'email',
                                     required: true,
                                     placeholder: {
-                                      en: 'Email',
-                                      fr: 'Entrez une adresse email...'
+                                        en: 'Email',
+                                        fr: 'Entrez une adresse email...'
                                     }
                                 }
                             }

@@ -28,7 +28,7 @@
                     <wwManagerInput class="input" :color="getInputColor(recipient.address.email, 'green')" v-model="recipient.address.email" :validation="validateEmail" label="Email"></wwManagerInput>
                     <div class="remove-elem" center color="red" @click="removeRecipient(index)">&times;</div>
                 </div>
-                <wwManagerButton class="add-recipient" center color="blue" @click="addRecipient">Add recipient</wwManagerButton>
+                <wwManagerButton class="button-add" center invert color="blue" @click="addRecipient">Add recipient</wwManagerButton>
             </div>
             <div class="elem">
                 <div class="title">Weweb Email color</div>
@@ -52,7 +52,7 @@
                     <wwManagerInput class="input data-request-value" color="green" v-model="elem.value" label="Value"></wwManagerInput>
                     <div class="remove-elem" @click="removeElem(result.config.hiddenData, index)">&times;</div>
                 </div>
-                <wwManagerButton class="data-request-add" center color="blue" @click="addElem(result.config.hiddenData)">Add</wwManagerButton>
+                <wwManagerButton class="button-add data-request-add" center invert color="blue" @click="addElem(result.config.hiddenData)">Add</wwManagerButton>
             </div>
             <div class="elem">
                 <div class="title">Request Headers</div>
@@ -61,7 +61,15 @@
                     <wwManagerInput class="input data-request-value" color="green" v-model="elem.value" label="Value"></wwManagerInput>
                     <div class="remove-elem" @click="removeElem(result.config.headers, index)">&times;</div>
                 </div>
-                <wwManagerButton class="data-request-add" center color="blue" @click="addElem(result.config.headers)">Add</wwManagerButton>
+                <wwManagerButton class="button-add data-request-add" center invert color="blue" @click="addElem(result.config.headers)">Add</wwManagerButton>
+            </div>
+            <div class="elem">
+                <div class="title">Query variable in URL</div>
+                 <div v-for="(elem, index) in result.config.queryVar" :key="`query-var-${index}`" class="data-request">
+                    <wwManagerInput class="input" color="blue" v-model="result.config.queryVar[index]" label="Name"></wwManagerInput>
+                    <div class="remove-elem" @click="removeElem(result.config.queryVar, index)">&times;</div>
+                </div>
+                <wwManagerButton class="button-add data-request-add" center invert color="blue" @click="addElem(result.config.queryVar)">Add</wwManagerButton>
             </div>
         </div>
     </div>
@@ -108,7 +116,8 @@ export default {
                     // WEWEB-EMAIL CONFIGURATION
                     recipients: [],
                     from: '',
-                    color: '#ce003b'
+                    color: '#ce003b',
+                    queryVar: []
                 }
             },
             // SELECT OPTIONS
@@ -202,12 +211,14 @@ export default {
                         name: 'ww-color',
                         value: this.result.config.color
                     }]
+                this.result.config.queryVar = []
             } else if (this.result.config.type === 'weweb-email') { // DEFAULT CONFIGURATION
                 this.result.config.action = ''
-                this.result.config.method = ''
+                this.result.config.method = 'POST'
                 this.result.config.headers = []
                 this.result.config.hiddenData = []
                 this.result.config.recipients = undefined
+                this.result.config.queryVar = []
             }
             this.result.config.type = this.type
         }
@@ -232,6 +243,8 @@ export default {
             this.result.config.recipients = this.initList(this.wwObject.content.data.config.recipients)
             this.result.config.from = this.wwObject.content.data.config.from || this.result.config.from
             this.result.config.color = this.wwObject.content.data.config.color || this.result.config.color
+            
+            this.result.config.queryVar = this.wwObject.content.data.config.queryVar || this.result.config.queryVar
             
             this.options.result = this.result
             this.type = this.result.config.type
@@ -281,8 +294,6 @@ export default {
     },
     created() {
         this.init()
-    },
-    beforeDestroy() {
     }
 };
 </script>
@@ -338,6 +349,11 @@ export default {
 
 .data-request-add {
     margin-top: 10px; 
+}
+
+.button-add {
+    width: 50%;
+    margin: 10px auto;
 }
 
 .remove-elem {

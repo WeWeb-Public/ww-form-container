@@ -5,7 +5,7 @@
         <div class="ww-form-status" :class="status" v-if="wwObjectCtrl.getSectionCtrl().getEditMode() == 'CONTENT'">Form status: {{status}}</div>
         <!-- wwManager:end -->
 
-        <form :id="wwObject.content.data.config.name" :autocomplete="wwObject.content.data.config.autocomplete" @submit.prevent="submit">
+        <form :id="wwObject.content.data.id" :name="wwObject.content.data.config.name" :autocomplete="wwObject.content.data.config.autocomplete" @submit.prevent="submit" :class="wwObject.content.data.class">
             <!-- FORM CONTENT -->
             <wwLayoutColumn ref="content" tag="div" class="ww-obj" ww-default="ww-image" :ww-list="wwObject.content.data.content" @ww-add="add(wwObject.content.data.content, $event)" @ww-remove="remove(wwObject.content.data.content, $event)" :ww-store-config="storeConfig">
                 <wwObject v-for="wwObj in wwObject.content.data.content" :key="wwObj.uniqueId" :ww-object="wwObj"></wwObject>
@@ -347,7 +347,11 @@ wwLib.wwPopups.addStory('WWFORM_ELEMENTS', {
 })
 
 import wwFormConfigPopup from './popup/wwFormConfigPopup.vue'
+import wwFormIdPopup from './popup/wwFormIdPopup.vue'
+import wwFormClassPopup from './popup/wwFormClassPopup.vue'
 wwLib.wwPopups.addPopup('wwFormConfigPopup', wwFormConfigPopup)
+wwLib.wwPopups.addPopup('wwFormIdPopup', wwFormIdPopup)
+wwLib.wwPopups.addPopup('wwFormClassPopup', wwFormClassPopup)
 
 wwLib.wwPopups.addStory('WW_FORM_CONFIG_POPUP', {
     title: {
@@ -355,6 +359,40 @@ wwLib.wwPopups.addStory('WW_FORM_CONFIG_POPUP', {
         fr: `Configuration du formulaire`
     },
     type: 'wwFormConfigPopup',
+    buttons: {
+        OK: {
+            text: {
+                en: 'Ok',
+                fr: 'Valider'
+            },
+            next: false
+        }
+    }
+})
+
+wwLib.wwPopups.addStory('WW_FORM_ID_POPUP', {
+    title: {
+        en: 'Form Id',
+        fr: `Id du formulaire`
+    },
+    type: 'wwFormIdPopup',
+    buttons: {
+        OK: {
+            text: {
+                en: 'Ok',
+                fr: 'Valider'
+            },
+            next: false
+        }
+    }
+})
+
+wwLib.wwPopups.addStory('WW_FORM_CLASS_POPUP', {
+    title: {
+        en: 'Form Class',
+        fr: `Class du formulaire`
+    },
+    type: 'wwFormClassPopup',
     buttons: {
         OK: {
             text: {
@@ -390,6 +428,30 @@ wwLib.wwPopups.addStory('WW_FORM_OPTIONS', {
                 },
                 icon: 'wwi wwi-config',
                 next: 'WW_FORM_CONFIG_POPUP'
+            },
+            ID: {
+                title: {
+                    en: 'Form Id',
+                    fr: 'Id du formulaire'
+                },
+                desc: {
+                    en: 'Edit the attribute ID',
+                    fr: 'Modifier l\'attribut ID'
+                },
+                icon: 'wwi wwi-icon',
+                next: 'WW_FORM_ID_POPUP'
+            },
+            CLASS: {
+                title: {
+                    en: 'Form Class',
+                    fr: 'Classes du formulaire'
+                },
+                desc: {
+                    en: 'Edit the class list',
+                    fr: 'Modifier la liste de classe'
+                },
+                icon: 'wwi wwi-edit',
+                next: 'WW_FORM_CLASS_POPUP'
             }
         }
     }
@@ -511,7 +573,12 @@ export default {
                         data.append(elem.name, elem.value)
                     }
                 }
-            
+                 // ADD QUERY VAR
+                for (const elem of this.wwObject.content.data.config.queryVar) {
+                    const value = this.$route.query[elem]
+                    if (value) data.append(elem, value)
+                }
+
                 // REQUEST
                 await axios({
                     method: this.wwObject.content.data.config.method,
@@ -577,8 +644,14 @@ export default {
                     this.wwObject.content.data.config.headers = result.config.headers
                     this.wwObject.content.data.config.hiddenData = result.config.hiddenData
                     this.wwObject.content.data.config.redirect = result.config.redirect
+                    this.wwObject.content.data.config.queryVar = result.config.queryVar
                 }
-
+                if (typeof (result.id) != 'undefined') {
+                    this.wwObject.content.data.id = result.id
+                }
+                if (typeof (result.class) != 'undefined') {
+                    this.wwObject.content.data.class = result.class
+                }
                 this.wwObjectCtrl.update(this.wwObject);
             } catch (err) {
                 wwLib.wwLog.error('ERROR', err)

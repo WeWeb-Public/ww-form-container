@@ -48,28 +48,28 @@
             <div class="elem">
                 <div class="title">Hidden form inputs</div>
                 <div v-for="(elem, index) in result.config.hiddenData" :key="`hidden-data-${index}`" class="data-request">
-                    <wwManagerInput class="input" color="blue" v-model="elem.name" label="Name"></wwManagerInput>
-                    <wwManagerInput class="input data-request-value" color="green" v-model="elem.value" label="Value"></wwManagerInput>
+                    <wwManagerInput class="input" color="blue" v-model="elem.name" label="Name" @change="result.config.hiddenData[index].name = $event"></wwManagerInput>
+                    <wwManagerInput class="input data-request-value" color="green" v-model="elem.value" label="Value" @change="result.config.hiddenData[index].value = $event"></wwManagerInput>
                     <div class="remove-elem" @click="removeElem(result.config.hiddenData, index)">&times;</div>
                 </div>
-                <wwManagerButton class="button-add data-request-add" center invert color="blue" @click="addElem(result.config.hiddenData)">Add</wwManagerButton>
+                <wwManagerButton class="button-add data-request-add" center invert color="blue" @click="addElem(result.config.hiddenData, {})">Add</wwManagerButton>
             </div>
             <div class="elem">
                 <div class="title">Request Headers</div>
                 <div v-for="(elem, index) in result.config.headers" :key="`headers-${index}`" class="data-request">
-                    <wwManagerInput class="input" color="blue" v-model="elem.name" label="Name"></wwManagerInput>
-                    <wwManagerInput class="input data-request-value" color="green" v-model="elem.value" label="Value"></wwManagerInput>
+                    <wwManagerInput class="input" color="blue" v-model="elem.name" label="Name" @change="result.config.headers[index].name = $event"></wwManagerInput>
+                    <wwManagerInput class="input data-request-value" color="green" v-model="elem.value" label="Value" @change="result.config.headers[index].value = $event"></wwManagerInput>
                     <div class="remove-elem" @click="removeElem(result.config.headers, index)">&times;</div>
                 </div>
-                <wwManagerButton class="button-add data-request-add" center invert color="blue" @click="addElem(result.config.headers)">Add</wwManagerButton>
+                <wwManagerButton class="button-add data-request-add" center invert color="blue" @click="addElem(result.config.headers, {})">Add</wwManagerButton>
             </div>
             <div class="elem">
-                <div class="title">Query variable in URL</div>
+                <div class="title">Query variables in URL</div>
                  <div v-for="(elem, index) in result.config.queryVar" :key="`query-var-${index}`" class="data-request">
                     <wwManagerInput class="input" color="blue" v-model="result.config.queryVar[index]" label="Name"></wwManagerInput>
                     <div class="remove-elem" @click="removeElem(result.config.queryVar, index)">&times;</div>
                 </div>
-                <wwManagerButton class="button-add data-request-add" center invert color="blue" @click="addElem(result.config.queryVar)">Add</wwManagerButton>
+                <wwManagerButton class="button-add data-request-add" center invert color="blue" @click="addElem(result.config.queryVar, '')">Add</wwManagerButton>
             </div>
         </div>
     </div>
@@ -285,8 +285,8 @@ export default {
         getInputColor(inputValue, defaultColor = 'green') {
             return (inputValue) ? defaultColor : 'orange'
         },
-        addElem(array) {
-            array.push([])
+        addElem(array, elem = {}) {
+            array.push(elem)
         },
         removeElem(array, index) {
             array.splice(index, 1)

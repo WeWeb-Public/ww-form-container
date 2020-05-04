@@ -617,7 +617,15 @@ export default {
 
                 //RUN JS
                 if (this.wwObject.content.data.config.js && this.wwObject.content.data.config.js.length) {
-                    eval(this.wwObject.content.data.config.js);
+                    try {
+                        eval(this.wwObject.content.data.config.js);
+                    } catch (error) {
+                        console.log("----------------------------");
+                        console.log("Failed to execute custom JS.");
+                        console.log(this.wwObject.content.data.config.js);
+                        console.log("----------------------------");
+                        console.log(error);
+                    }
                 }
 
                 // REDIRECT

@@ -615,6 +615,11 @@ export default {
                     headers
                 });
 
+                //RUN JS
+                if (this.wwObject.content.data.config.js && this.wwObject.content.data.config.js.length) {
+                    eval(this.wwObject.content.data.config.js);
+                }
+
                 // REDIRECT
                 if (this.wwObject.content.data.config.redirect.enabled) {
                     this.goToPage(this.wwObject.content.data.config.redirect.linkPage);
@@ -673,6 +678,9 @@ export default {
                     this.wwObject.content.data.config.hiddenData = result.config.hiddenData;
                     this.wwObject.content.data.config.redirect = result.config.redirect;
                     this.wwObject.content.data.config.queryVar = result.config.queryVar;
+                    this.wwObject.content.data.config.js = result.config.js;
+
+                    console.log(this.wwObject.content.data.config.js);
                 }
                 if (typeof result.id != "undefined") {
                     this.wwObject.content.data.id = result.id;

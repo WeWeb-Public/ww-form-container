@@ -65,26 +65,33 @@
             </div>
             <div class="elem">
                 <div class="title">Query variables in URL</div>
-                 <div v-for="(elem, index) in result.config.queryVar" :key="`query-var-${index}`" class="data-request">
+                <div v-for="(elem, index) in result.config.queryVar" :key="`query-var-${index}`" class="data-request">
                     <wwManagerInput class="input" color="blue" v-model="result.config.queryVar[index]" label="Name"></wwManagerInput>
                     <div class="remove-elem" @click="removeElem(result.config.queryVar, index)">&times;</div>
                 </div>
                 <wwManagerButton class="button-add data-request-add" center invert color="blue" @click="addElem(result.config.queryVar, '')">Add</wwManagerButton>
             </div>
         </div>
+
+        <div class="content">
+            <div class="elem">
+                <div class="title">Run Javascript on submit</div>
+                <textarea class="input" v-model="result.config.js" style="height: 300px;"></textarea>
+            </div>
+        </div>
     </div>
 </template>
 
-<script> 
+<script>
 export default {
     name: "wwFormConfigPopup",
     props: {
         options: {
             type: Object,
             default() {
-                return {}
+                return {};
             }
-        },
+        }
     },
     data() {
         return {
@@ -93,20 +100,20 @@ export default {
             designId: wwLib.wwWebsiteData.getInfo().id,
             apiUrl: wwLib.wwApiRequests._getApiUrl(),
             pagesOptions: {
-                type: 'text',
+                type: "text",
                 values: []
             },
             // WWOBJECT
             wwObject: this.options.data.wwObject,
             // DATA
-            type: '',
+            type: "",
             result: {
                 config: {
-                    name: '',
+                    name: "",
                     autocomplete: true,
-                    type: 'weweb-email',
-                    action: '',
-                    method: '',
+                    type: "weweb-email",
+                    action: "",
+                    method: "",
                     redirect: {
                         enabled: false,
                         linkPage: undefined
@@ -115,140 +122,157 @@ export default {
                     headers: [],
                     // WEWEB-EMAIL CONFIGURATION
                     recipients: [],
-                    from: '',
-                    color: '#ce003b',
+                    from: "",
+                    color: "#ce003b",
                     queryVar: []
                 }
             },
             // SELECT OPTIONS
             typeOptions: {
-                type: 'text',
-                values: [{
-                    value: 'weweb-email',
-                    default: true,
-                    text: {
-                        en: 'Weweb email service',
-                        fr: `Service d'email Weweb`
+                type: "text",
+                values: [
+                    {
+                        value: "weweb-email",
+                        default: true,
+                        text: {
+                            en: "Weweb email service",
+                            fr: `Service d'email Weweb`
+                        }
+                    },
+                    {
+                        value: "custom-api",
+                        text: {
+                            en: "Custom Api",
+                            fr: "Api personnalisé"
+                        }
                     }
-                }, {
-                    value: 'custom-api',
-                    text: {
-                        en: 'Custom Api',
-                        fr: 'Api personnalisé'
-                    }
-                }]
+                ]
             },
             methodOptions: {
-                type: 'text',
-                values: [{
-                    value: 'GET',
-                    text: {
-                        en: 'GET',
-                        fr: 'GET'
+                type: "text",
+                values: [
+                    {
+                        value: "GET",
+                        text: {
+                            en: "GET",
+                            fr: "GET"
+                        }
+                    },
+                    {
+                        value: "POST",
+                        default: true,
+                        text: {
+                            en: "POST",
+                            fr: "POST"
+                        }
+                    },
+                    {
+                        value: "PUT",
+                        text: {
+                            en: "PUT",
+                            fr: "PUT"
+                        }
+                    },
+                    {
+                        value: "PATCH",
+                        text: {
+                            en: "PATCH",
+                            fr: "PATCH"
+                        }
+                    },
+                    {
+                        value: "DELETE",
+                        text: {
+                            en: "DELETE",
+                            fr: "DELETE"
+                        }
                     }
-                }, {
-                    value: 'POST',
-                    default: true,
-                    text: {
-                        en: 'POST',
-                        fr: 'POST'
-                    }
-                }, {
-                    value: 'PUT',
-                    text: {
-                        en: 'PUT',
-                        fr: 'PUT'
-                    }
-                }, {
-                    value: 'PATCH',
-                    text: {
-                        en: 'PATCH',
-                        fr: 'PATCH'
-                    }
-                }, {
-                    value: 'DELETE',
-                    text: {
-                        en: 'DELETE',
-                        fr: 'DELETE'
-                    }
-                }]
+                ]
             },
             // INPUT VALIDATION
             validateUrl: {
                 regex: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}(\.[a-z]{2,6})?\b([-a-zA-Z0-9@:%_\+.~#?&//=\,]*)$/gi,
                 message: {
-                    en: 'URL is in incorrect format.',
-                    fr: 'L\'url est dans un format incorrect.',
+                    en: "URL is in incorrect format.",
+                    fr: "L'url est dans un format incorrect."
                 }
             },
             validateEmail: {
                 regex: /^$/gi,
                 message: {
-                    en: 'Email is in incorrect format.',
-                    fr: 'L\'email est dans un format incorrect.',
+                    en: "Email is in incorrect format.",
+                    fr: "L'email est dans un format incorrect."
                 }
             }
-        }
+        };
     },
     watch: {
         type() {
-            if (this.type === 'weweb-email') { // WEWEB-EMAIL CONFIGURATION
-                this.result.config.action = `${this.apiUrl}/design/${this.designId}/send_form_info`
-                this.result.config.method = 'POST'
-                this.result.config.recipients = this.result.config.recipients || [{ address: { email: wwLib.$store.getters['manager/getUser'].email } }]
-                this.result.config.color = this.result.config.color
-                this.result.config.headers = [{ name: 'Content-Type', value: 'multipart/form-data' }]
-                this.result.config.hiddenData = [{
-                        name: 'ww-type',
-                        value: 'form'
-                    }, {
-                        name: 'ww-from',
+            if (this.type === "weweb-email") {
+                // WEWEB-EMAIL CONFIGURATION
+                this.result.config.action = `${this.apiUrl}/design/${this.designId}/send_form_info`;
+                this.result.config.method = "POST";
+                this.result.config.recipients = this.result.config.recipients || [{ address: { email: wwLib.$store.getters["manager/getUser"].email } }];
+                this.result.config.color = this.result.config.color;
+                this.result.config.headers = [{ name: "Content-Type", value: "multipart/form-data" }];
+                this.result.config.hiddenData = [
+                    {
+                        name: "ww-type",
+                        value: "form"
+                    },
+                    {
+                        name: "ww-from",
                         value: this.designName
-                    }, {
-                        name: 'ww-recipients',
+                    },
+                    {
+                        name: "ww-recipients",
                         value: JSON.stringify(this.result.config.recipients)
-                    }, {
-                        name: 'ww-color',
+                    },
+                    {
+                        name: "ww-color",
                         value: this.result.config.color
-                    }]
-                this.result.config.queryVar = []
-            } else if (this.result.config.type === 'weweb-email') { // DEFAULT CONFIGURATION
-                this.result.config.action = ''
-                this.result.config.method = 'POST'
-                this.result.config.headers = []
-                this.result.config.hiddenData = []
-                this.result.config.recipients = undefined
-                this.result.config.queryVar = []
+                    }
+                ];
+                this.result.config.queryVar = [];
+            } else if (this.result.config.type === "weweb-email") {
+                // DEFAULT CONFIGURATION
+                this.result.config.action = "";
+                this.result.config.method = "POST";
+                this.result.config.headers = [];
+                this.result.config.hiddenData = [];
+                this.result.config.recipients = undefined;
+                this.result.config.queryVar = [];
             }
-            this.result.config.type = this.type
+            this.result.config.type = this.type;
         }
     },
     methods: {
         // INIT CONFIGURATION
         init() {
             // DEFAULT CONFIGURATION
-            this.wwObject.content.data.config = this.wwObject.content.data.config || {}
-            this.result.config.type = this.wwObject.content.data.config.type || this.result.config.type
-            this.result.config.name = this.wwObject.content.data.config.name || this.result.config.name
-            this.result.config.autocomplete = this.wwObject.content.data.config.autocomplete || this.result.config.autocomplete
-            this.result.config.action = this.wwObject.content.data.config.action || this.result.config.action
-            this.result.config.method = this.wwObject.content.data.config.method || this.result.config.method
-            this.result.config.redirect = this.wwObject.content.data.config.redirect || this.result.config.redirect
+            this.wwObject.content.data.config = this.wwObject.content.data.config || {};
+            this.result.config.type = this.wwObject.content.data.config.type || this.result.config.type;
+            this.result.config.name = this.wwObject.content.data.config.name || this.result.config.name;
+            this.result.config.autocomplete = this.wwObject.content.data.config.autocomplete || this.result.config.autocomplete;
+            this.result.config.action = this.wwObject.content.data.config.action || this.result.config.action;
+            this.result.config.method = this.wwObject.content.data.config.method || this.result.config.method;
+            this.result.config.redirect = this.wwObject.content.data.config.redirect || this.result.config.redirect;
+            this.result.config.js = this.wwObject.content.data.config.js || this.result.config.js;
 
             // CUSTOM-API CONFIGURATION
-            this.result.config.headers = this.wwObject.content.data.config.headers || this.result.config.headers
-            this.result.config.hiddenData = this.wwObject.content.data.config.hiddenData || this.result.config.hiddenData
+            this.result.config.headers = this.wwObject.content.data.config.headers || this.result.config.headers;
+            this.result.config.hiddenData = this.wwObject.content.data.config.hiddenData || this.result.config.hiddenData;
 
             // WEWEB-EMAIL CONFIGURATION
-            this.result.config.recipients = this.initList(this.wwObject.content.data.config.recipients)
-            this.result.config.from = this.wwObject.content.data.config.from || this.result.config.from
-            this.result.config.color = this.wwObject.content.data.config.color || this.result.config.color
-            
-            this.result.config.queryVar = this.wwObject.content.data.config.queryVar || this.result.config.queryVar
-            
-            this.options.result = this.result
-            this.type = this.result.config.type
-            this.initPageOptions()
+            this.result.config.recipients = this.initList(this.wwObject.content.data.config.recipients);
+            this.result.config.from = this.wwObject.content.data.config.from || this.result.config.from;
+            this.result.config.color = this.wwObject.content.data.config.color || this.result.config.color;
+
+            this.result.config.queryVar = this.wwObject.content.data.config.queryVar || this.result.config.queryVar;
+
+            this.options.result = this.result;
+            this.type = this.result.config.type;
+            this.initPageOptions();
         },
         initPageOptions() {
             for (const page of wwLib.wwWebsiteData.getPages()) {
@@ -258,42 +282,41 @@ export default {
                         en: page.name,
                         fr: page.name
                     }
-                })
+                });
             }
-            this.pagesOptions.values[0].default = true
-            this.pagesOptions.values.sort((a, b) => a.text.en.localeCompare(b.text.en))
+            this.pagesOptions.values[0].default = true;
+            this.pagesOptions.values.sort((a, b) => a.text.en.localeCompare(b.text.en));
         },
         updateNameForm() {
-            this.result.config.name = this.result.config.name.trim().replace(/\s/gm, '-')
+            this.result.config.name = this.result.config.name.trim().replace(/\s/gm, "-");
         },
         // WEWEB-EMAIL CONFIGURATION
         initList(list) {
-            const defaultValue = [{ address: { email: '' } }]
-            if (!list || !list.length)
-                list = defaultValue
-            return list
+            const defaultValue = [{ address: { email: "" } }];
+            if (!list || !list.length) list = defaultValue;
+            return list;
         },
         addRecipient() {
             this.result.config.recipients.push({
-                address: { email: '' }
-            })
+                address: { email: "" }
+            });
         },
         removeRecipient(index) {
-            this.result.config.recipients.splice(index, 1)
+            this.result.config.recipients.splice(index, 1);
         },
         // UTILS
-        getInputColor(inputValue, defaultColor = 'green') {
-            return (inputValue) ? defaultColor : 'orange'
+        getInputColor(inputValue, defaultColor = "green") {
+            return inputValue ? defaultColor : "orange";
         },
         addElem(array, elem = {}) {
-            array.push(elem)
+            array.push(elem);
         },
         removeElem(array, index) {
-            array.splice(index, 1)
+            array.splice(index, 1);
         }
     },
     created() {
-        this.init()
+        this.init();
     }
 };
 </script>
@@ -341,14 +364,14 @@ export default {
 .data-request {
     display: flex;
     align-items: center;
-    margin-top: 10px; 
+    margin-top: 10px;
     .data-request-value {
-        margin-left: 10px; 
+        margin-left: 10px;
     }
 }
 
 .data-request-add {
-    margin-top: 10px; 
+    margin-top: 10px;
 }
 
 .button-add {
@@ -367,11 +390,11 @@ export default {
     align-items: center;
     justify-content: center;
     color: #e02a4d;
-    transition: all .5s ease;
+    transition: all 0.5s ease;
     cursor: pointer;
     .content {
         padding: 0px 10px;
-    }   
+    }
     &:hover {
         background: #e02a4d;
         color: white;

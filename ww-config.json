@@ -19,7 +19,8 @@
                         "name": "Content-Type",
                         "value": "multipart/form-data"
                     }
-                ]
+                ],
+                "js": null
             }
         }
     },

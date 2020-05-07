@@ -465,6 +465,7 @@ export default {
     },
     data() {
         return {
+            form: null,
             status: "default",
             storeConfig: {
                 additionalOptions: {
@@ -501,6 +502,8 @@ export default {
 
             this.migrateData();
             this.wwObjectCtrl.update(this.wwObject);
+
+            this.form = this.$el.querySelector("form");
         },
         migrateData() {
             /* wwManager:start */

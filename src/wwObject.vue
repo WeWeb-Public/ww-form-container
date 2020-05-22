@@ -578,7 +578,7 @@ export default {
         goToPage(pageId) {
             wwLib.wwLinkPopups.closeAll();
             const path = wwLib.wwWebsiteData.getPageRoute(pageId, true) || "/";
-            wwLib.$router.push(path);
+            wwLib.goTo(path);
             this.$emit("next", null);
         },
         async submit(form) {

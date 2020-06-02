@@ -717,6 +717,7 @@ export default {
           this.wwObject.content.data.class = result.class;
         }
         this.wwObjectCtrl.update(this.wwObject);
+        this.wwObjectCtrl.globalEdit(result);
       } catch (err) {
         wwLib.wwLog.error("ERROR", err);
       }

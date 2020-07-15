@@ -25,14 +25,20 @@
             <div class="elem">
                 <div class="title">Recipients</div>
                 <div class="email" v-for="(recipient, index) in result.config.recipients" :key="recipient.id">
-                    <wwManagerInput class="input" :color="getInputColor(recipient.address.email, 'green')" v-model="recipient.address.email" :validation="validateEmail" label="Email"></wwManagerInput>
+                    <wwManagerInput class="input" :color="getInputColor(recipient.address.email, 'green')" v-model="recipient.address.email" @change="initHiddenData" :validation="validateEmail" label="Email"></wwManagerInput>
                     <div class="remove-elem" center color="red" @click="removeRecipient(index)">&times;</div>
                 </div>
                 <wwManagerButton class="button-add" center invert color="blue" @click="addRecipient">Add recipient</wwManagerButton>
             </div>
             <div class="elem">
                 <div class="title">Weweb Email color</div>
-                <wwManagerColorSelect :value="result.config.color" @change="result.config.color = $event"></wwManagerColorSelect>
+                <wwManagerColorSelect
+                    :value="result.config.color"
+                    @change="
+                        result.config.color = $event;
+                        initHiddenData();
+                    "
+                ></wwManagerColorSelect>
             </div>
         </div>
         <!-- CUSTOM-API CONFIGURATION -->
@@ -84,14 +90,14 @@
 
 <script>
 export default {
-    name: "wwFormConfigPopup",
+    name: 'wwFormConfigPopup',
     props: {
         options: {
             type: Object,
             default() {
                 return {};
-            }
-        }
+            },
+        },
     },
     data() {
         return {
@@ -100,151 +106,151 @@ export default {
             designId: wwLib.wwWebsiteData.getInfo().id,
             apiUrl: wwLib.wwApiRequests._getApiUrl(),
             pagesOptions: {
-                type: "text",
-                values: []
+                type: 'text',
+                values: [],
             },
             // WWOBJECT
             wwObject: this.options.data.wwObject,
             // DATA
-            type: "",
+            type: '',
             result: {
                 config: {
-                    name: "",
+                    name: '',
                     autocomplete: true,
-                    type: "weweb-email",
-                    action: "",
-                    method: "",
+                    type: 'weweb-email',
+                    action: '',
+                    method: '',
                     redirect: {
                         enabled: false,
-                        linkPage: undefined
+                        linkPage: undefined,
                     },
                     hiddenData: [],
                     headers: [],
                     // WEWEB-EMAIL CONFIGURATION
                     recipients: [],
-                    from: "",
-                    color: "#ce003b",
-                    queryVar: []
-                }
+                    from: '',
+                    color: '#ce003b',
+                    queryVar: [],
+                },
             },
             // SELECT OPTIONS
             typeOptions: {
-                type: "text",
+                type: 'text',
                 values: [
                     {
-                        value: "weweb-email",
+                        value: 'weweb-email',
                         default: true,
                         text: {
-                            en: "Weweb email service",
-                            fr: `Service d'email Weweb`
-                        }
+                            en: 'Weweb email service',
+                            fr: `Service d'email Weweb`,
+                        },
                     },
                     {
-                        value: "custom-api",
+                        value: 'custom-api',
                         text: {
-                            en: "Custom Api",
-                            fr: "Api personnalisé"
-                        }
-                    }
-                ]
+                            en: 'Custom Api',
+                            fr: 'Api personnalisé',
+                        },
+                    },
+                ],
             },
             methodOptions: {
-                type: "text",
+                type: 'text',
                 values: [
                     {
-                        value: "GET",
+                        value: 'GET',
                         text: {
-                            en: "GET",
-                            fr: "GET"
-                        }
+                            en: 'GET',
+                            fr: 'GET',
+                        },
                     },
                     {
-                        value: "POST",
+                        value: 'POST',
                         default: true,
                         text: {
-                            en: "POST",
-                            fr: "POST"
-                        }
+                            en: 'POST',
+                            fr: 'POST',
+                        },
                     },
                     {
-                        value: "PUT",
+                        value: 'PUT',
                         text: {
-                            en: "PUT",
-                            fr: "PUT"
-                        }
+                            en: 'PUT',
+                            fr: 'PUT',
+                        },
                     },
                     {
-                        value: "PATCH",
+                        value: 'PATCH',
                         text: {
-                            en: "PATCH",
-                            fr: "PATCH"
-                        }
+                            en: 'PATCH',
+                            fr: 'PATCH',
+                        },
                     },
                     {
-                        value: "DELETE",
+                        value: 'DELETE',
                         text: {
-                            en: "DELETE",
-                            fr: "DELETE"
-                        }
-                    }
-                ]
+                            en: 'DELETE',
+                            fr: 'DELETE',
+                        },
+                    },
+                ],
             },
             // INPUT VALIDATION
             validateUrl: {
                 regex: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}(\.[a-z]{2,6})?\b([-a-zA-Z0-9@:%_\+.~#?&//=\,]*)$/gi,
                 message: {
-                    en: "URL is in incorrect format.",
-                    fr: "L'url est dans un format incorrect."
-                }
+                    en: 'URL is in incorrect format.',
+                    fr: "L'url est dans un format incorrect.",
+                },
             },
             validateEmail: {
                 regex: /^$/gi,
                 message: {
-                    en: "Email is in incorrect format.",
-                    fr: "L'email est dans un format incorrect."
-                }
-            }
+                    en: 'Email is in incorrect format.',
+                    fr: "L'email est dans un format incorrect.",
+                },
+            },
         };
     },
     watch: {
         type() {
-            if (this.type === "weweb-email") {
+            if (this.type === 'weweb-email') {
                 // WEWEB-EMAIL CONFIGURATION
                 this.result.config.action = `${this.apiUrl}/design/${this.designId}/send_form_info`;
-                this.result.config.method = "POST";
-                this.result.config.recipients = this.result.config.recipients || [{ address: { email: wwLib.$store.getters["manager/getUser"].email } }];
+                this.result.config.method = 'POST';
+                this.result.config.recipients = this.result.config.recipients || [{ address: { email: wwLib.$store.getters['manager/getUser'].email } }];
                 this.result.config.color = this.result.config.color;
-                this.result.config.headers = [{ name: "Content-Type", value: "multipart/form-data" }];
+                this.result.config.headers = [{ name: 'Content-Type', value: 'multipart/form-data' }];
                 this.result.config.hiddenData = [
                     {
-                        name: "ww-type",
-                        value: "form"
+                        name: 'ww-type',
+                        value: 'form',
                     },
                     {
-                        name: "ww-from",
-                        value: this.designName
+                        name: 'ww-from',
+                        value: this.designName,
                     },
                     {
-                        name: "ww-recipients",
-                        value: JSON.stringify(this.result.config.recipients)
+                        name: 'ww-recipients',
+                        value: JSON.stringify(this.result.config.recipients),
                     },
                     {
-                        name: "ww-color",
-                        value: this.result.config.color
-                    }
+                        name: 'ww-color',
+                        value: this.result.config.color,
+                    },
                 ];
                 this.result.config.queryVar = [];
-            } else if (this.result.config.type === "weweb-email") {
+            } else if (this.result.config.type === 'weweb-email') {
                 // DEFAULT CONFIGURATION
-                this.result.config.action = "";
-                this.result.config.method = "POST";
+                this.result.config.action = '';
+                this.result.config.method = 'POST';
                 this.result.config.headers = [];
                 this.result.config.hiddenData = [];
                 this.result.config.recipients = undefined;
                 this.result.config.queryVar = [];
             }
             this.result.config.type = this.type;
-        }
+        },
     },
     methods: {
         // INIT CONFIGURATION
@@ -280,44 +286,66 @@ export default {
                     value: page.id,
                     text: {
                         en: page.name,
-                        fr: page.name
-                    }
+                        fr: page.name,
+                    },
                 });
             }
             this.pagesOptions.values[0].default = true;
             this.pagesOptions.values.sort((a, b) => a.text.en.localeCompare(b.text.en));
         },
         updateNameForm() {
-            this.result.config.name = this.result.config.name.trim().replace(/\s/gm, "-");
+            this.result.config.name = this.result.config.name.trim().replace(/\s/gm, '-');
         },
         // WEWEB-EMAIL CONFIGURATION
         initList(list) {
-            const defaultValue = [{ address: { email: "" } }];
+            const defaultValue = [{ address: { email: '' } }];
             if (!list || !list.length) list = defaultValue;
             return list;
         },
+        initHiddenData() {
+            this.result.config.hiddenData = [
+                {
+                    name: 'ww-type',
+                    value: 'form',
+                },
+                {
+                    name: 'ww-from',
+                    value: this.designName,
+                },
+                {
+                    name: 'ww-recipients',
+                    value: JSON.stringify(this.result.config.recipients),
+                },
+                {
+                    name: 'ww-color',
+                    value: this.result.config.color,
+                },
+            ];
+        },
         addRecipient() {
             this.result.config.recipients.push({
-                address: { email: "" }
+                address: { email: '' },
             });
+            this.initHiddenData();
         },
         removeRecipient(index) {
             this.result.config.recipients.splice(index, 1);
+            this.initHiddenData();
         },
         // UTILS
-        getInputColor(inputValue, defaultColor = "green") {
-            return inputValue ? defaultColor : "orange";
+        getInputColor(inputValue, defaultColor = 'green') {
+            return inputValue ? defaultColor : 'orange';
         },
         addElem(array, elem = {}) {
             array.push(elem);
         },
         removeElem(array, index) {
             array.splice(index, 1);
-        }
+        },
     },
     created() {
         this.init();
-    }
+    },
 };
 </script>
 

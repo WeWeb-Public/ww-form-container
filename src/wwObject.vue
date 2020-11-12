@@ -510,7 +510,6 @@ export default {
             this.wwObject.content.data.config = this.wwObject.content.data.config || {};
 
             this.migrateData();
-            this.wwObjectCtrl.update(this.wwObject);
 
             this.form = this.$el.querySelector('form');
         },
@@ -543,7 +542,7 @@ export default {
                 };
                 updateContent = true
             }
-            if (this.wwObject.content.data.isNew) {
+            if (typeof this.wwObject.content.data.config === 'string') {
                 this.wwObject.content.data.content = [
                     wwLib.wwObject.getDefault({
                         type: 'ww-form-input',
@@ -566,7 +565,7 @@ export default {
                 const apiUrl = wwLib.wwApiRequests._getApiUrl();
                 this.wwObject.content.data.config.action = this.wwObject.content.data.config || `${apiUrl}/design/${designId}/send_form_info`;
 
-                delete this.wwObject.content.data.isNew;
+                delete this.wwObject.content.data.isNew
                 updateContent = true
             }
             if (updateContent) this.wwObjectCtrl.update(this.wwObject);

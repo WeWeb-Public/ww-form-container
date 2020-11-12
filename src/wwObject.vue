@@ -515,6 +515,7 @@ export default {
             this.form = this.$el.querySelector('form');
         },
         migrateData() {
+            let updateContent = false
             /* wwManager:start */
             if (this.wwObject.content.data.config.type === 'weweb-email') {
                 const designName = wwLib.wwWebsiteData.getWebsiteNameFromRoute();
@@ -525,18 +526,22 @@ export default {
                     { name: 'ww-recipients', value: JSON.stringify(this.wwObject.content.data.config.recipients) },
                     { name: 'ww-color', value: this.wwObject.content.data.config.color || '#ce003b' },
                 ];
+                updateContent = true
             } else {
                 this.wwObject.content.data.config.hiddenData = this.wwObject.content.data.config.hiddenData || [];
+                updateContent = true
             }
             /* wwManager:end */
             if (!this.wwObject.content.data.config.headers) {
                 this.wwObject.content.data.config.headers = [{ name: 'Content-Type', value: this.wwObject.content.data.config.encType }];
+                updateContent = true
             }
             if (!this.wwObject.content.data.config.redirect) {
                 this.wwObject.content.data.config.redirect = {
                     enabled: true,
                     linkPage: this.wwObject.content.data.config.linkPage,
                 };
+                updateContent = true
             }
             if (this.wwObject.content.data.isNew) {
                 this.wwObject.content.data.content = [
@@ -562,7 +567,9 @@ export default {
                 this.wwObject.content.data.config.action = this.wwObject.content.data.config || `${apiUrl}/design/${designId}/send_form_info`;
 
                 delete this.wwObject.content.data.isNew;
+                updateContent = true
             }
+            if (updateContent) this.wwObjectCtrl.update(this.wwObject);
         },
         defaultStatus() {
             this.status = 'default';
